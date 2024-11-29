@@ -40,8 +40,7 @@ RUN dotnet test function/tests/unit/unit.csproj -c release
 RUN dotnet publish \
     -a $TARGETARCH \
     -c release \
-    --no-self-contained \
-    -p:PublishReadyToRun=true \
+    -p:BlazorEnableCompression=true \
     -o published \
     function/src/function.csproj
 
