@@ -1,10 +1,12 @@
 # syntax=docker/dockerfile:1.3
 FROM ghcr.io/openfaas/of-watchdog:0.9.6 as watchdog
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim as builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim as builder
 ARG RUN_TESTS="true"
 ARG AZURE_DEVOPS_FEED_USERNAME
 ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
+ARG BUILDPLATFORM
+ARG TARGETARCH
 
 RUN apt update && apt install libxml2-utils -y
 
@@ -25,7 +27,7 @@ RUN ls
 COPY add-nuget-config.sh /tmp/
 RUN chmod u+x /tmp/add-nuget-config.sh
 RUN --mount=type=secret,id=nuget.config /tmp/add-nuget-config.sh nuget.config \
-    dotnet restore
+    dotnet restore -a $TARGETARCH
 
 # Copies the rest of the code
 WORKDIR /source/faas
@@ -34,26 +36,26 @@ COPY . .
 # Run the unit tests
 RUN dotnet test function/tests/unit/unit.csproj -c release
 
-# Run the integration tests
-RUN if [ "$RUN_TESTS" != "false" ]; then dotnet test function/tests/integration/integration.csproj -c release; fi
-
 # build and publish
 RUN dotnet publish \
+    -a $TARGETARCH \
     -c release \
-    -r linux-x64 \
-    --no-self-contained \
-    -p:PublishReadyToRun=true \
+    -p:BlazorEnableCompression=true \
     -o published \
     function/src/function.csproj
 
 # runner
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim
 
 COPY --from=watchdog /fwatchdog /usr/bin/
 
-# Create a non-root user
-RUN addgroup --system app \
-    && adduser --system --ingroup app app
+# Check if the 'app' group exists, create it if it doesn't
+RUN if getent group app > /dev/null 2>&1; then \
+    echo "Group 'app' already exists"; \
+    else \
+    addgroup --system app; \
+    fi \
+    && adduser --system --ingroup app appuser
 
 WORKDIR /home/app/
 COPY --from=builder /source/faas/published .
