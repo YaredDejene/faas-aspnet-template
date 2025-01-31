@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.3
 FROM ghcr.io/openfaas/of-watchdog:0.9.6 as watchdog
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim as builder
 ARG RUN_TESTS="true"
 ARG AZURE_DEVOPS_FEED_USERNAME
 ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
@@ -46,7 +46,7 @@ RUN dotnet publish \
     function/src/function.csproj
 
 # runner
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim
 
 COPY --from=watchdog /fwatchdog /usr/bin/
 
