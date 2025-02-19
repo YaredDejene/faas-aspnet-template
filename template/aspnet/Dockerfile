@@ -6,7 +6,7 @@ ARG RUN_TESTS="true"
 ARG AZURE_DEVOPS_FEED_USERNAME
 ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
 
-RUN apt update && apt install -y libxml2-utils curl
+RUN apt update && apt install -y libxml2-utils
 
 # suppress data collection
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
@@ -48,6 +48,9 @@ RUN dotnet publish \
 
 # runner
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim
+
+# Install curl in the runtime container
+RUN apt update && apt install -y curl && rm -rf /var/lib/apt/lists/*
 
 COPY --from=watchdog /fwatchdog /usr/bin/
 
