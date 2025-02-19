@@ -6,7 +6,7 @@ ARG RUN_TESTS="true"
 ARG AZURE_DEVOPS_FEED_USERNAME
 ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
 
-RUN apt update && apt install libxml2-utils -y
+RUN apt update && apt install -y libxml2-utils curl
 
 # suppress data collection
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
