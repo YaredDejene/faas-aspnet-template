@@ -49,8 +49,8 @@ RUN dotnet publish \
 # runner
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim
 
-# Install curl in the runtime container
-RUN apt update && apt install -y curl && rm -rf /var/lib/apt/lists/*
+# Install curl and ping in the runtime container
+RUN apt update && apt install -y curl iputils-ping && rm -rf /var/lib/apt/lists/*
 
 COPY --from=watchdog /fwatchdog /usr/bin/
 
